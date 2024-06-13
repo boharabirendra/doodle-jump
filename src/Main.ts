@@ -9,6 +9,7 @@ import { Doodler, gameOver } from "./Doodler";
 import { Platform } from "./Platform";
 import { DIRECTION } from "./Utils";
 
+let highestScore: number = 0;
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -32,8 +33,41 @@ const doodler = new Doodler(
     x: 0,
     y: 0,
   },
-  ctx
+  ctx,
+  false
 );
+
+/* score element */
+const scoreEl = document.createElement("p");
+scoreEl.style.padding = "6px 22px";
+scoreEl.style.borderRadius = "10px";
+scoreEl.style.border = "1px solid #020817";
+scoreEl.style.font = "16px";
+scoreEl.style.position = "absolute";
+scoreEl.style.top = "25px";
+scoreEl.style.margin = "0px";
+scoreEl.style.backgroundColor = "#bbb";
+scoreEl.style.left = "20%";
+document.body.appendChild(scoreEl);
+
+/* highest score element */
+if (localStorage.getItem("highestScore")) {
+  highestScore = Number(localStorage.getItem("highestScore"));
+} else {
+  localStorage.setItem("highestScore", highestScore.toString());
+}
+const highestScoreEl = document.createElement("p");
+highestScoreEl.style.padding = "6px 22px";
+highestScoreEl.style.borderRadius = "10px";
+highestScoreEl.style.border = "1px solid #020817";
+highestScoreEl.style.font = "16px";
+highestScoreEl.style.position = "absolute";
+highestScoreEl.style.top = "80px";
+highestScoreEl.style.margin = "0px";
+highestScoreEl.style.backgroundColor = "#aaa";
+highestScoreEl.style.left = "20%";
+highestScoreEl.innerHTML = `Highest Score: ${highestScore}`;
+document.body.appendChild(highestScoreEl);
 
 /* Platform section */
 const platformArray: Platform[] = [];
@@ -85,17 +119,18 @@ function newPlatform() {
 
 /*   */
 function draw() {
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   doodler.insertDoodler();
 
-  /* Creating new platform */
+  /* adding new platform */
   for (let i = 0; i < platformArray.length; i++) {
     const platform = platformArray[i];
     if (doodler.velocity.y < 0 && doodler.velocity.y < (canvas.width * 3) / 4) {
       platform.position.posY -= INITIAL_VELOCITY_Y;
     }
-    if (detectCollision(doodler, platform) && doodler.velocity.y >= 0) {
+    if (detectCollision(doodler, platform) && doodler.velocity.y > 0) {
       doodler.velocity.y = INITIAL_VELOCITY_Y;
     }
     platform.createPlatform();
@@ -109,23 +144,53 @@ function draw() {
     newPlatform();
   }
 
-  /* Updating score */
-  doodler.updateScore();
-  ctx.fillStyle = "black";
-  ctx.font = " 20px sans-serif";
-  ctx.fillText(`Score: ${doodler.score}`, 5, 20);
 
+
+  /* Updating score and highest score*/
+  doodler.updateScore();
+  scoreEl.innerHTML = `Score: ${doodler.score}`;
+  if (doodler.score > highestScore) {
+    highestScore = doodler.score;
+    localStorage.setItem("highestScore", highestScore.toString());
+    highestScoreEl.innerHTML = `Highest Score: ${highestScore}`;
+  }
+
+  /*Game over information */
   if (gameOver) {
-    ctx.fillStyle = "black";
-    ctx.fillText(
-      "Game Over: Press 'R' to Restart",
-      20,
-      (ctx.canvas.height * 7) / 8
-    );
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    const boxWidth = 300;
+    const boxHeight = 140;
+    const boxX = (ctx.canvas.width - boxWidth) / 2;
+    const boxY = (ctx.canvas.height - boxHeight) / 2;
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+    ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+    ctx.font = '20px "Gloria Hallelujah", sans-serif';
+    ctx.fillStyle = "red";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText("Game Over", ctx.canvas.width / 2, boxY + 30);
+    ctx.fillText(`Score: ${doodler.score}`, ctx.canvas.width / 2, boxY + 70);
+    ctx.fillText("Press 'R' to Restart", ctx.canvas.width / 2, boxY + 110);
     return;
   }
+
+  if (!doodler.gameStart) {
+    ctx.fillStyle = "black";
+    ctx.font = '24px "Gloria Hallelujah", sans-serif';
+    ctx.fillText("Press 'space' to start game", 15, ctx.canvas.height - 10);
+  }
+
+  if(doodler.position.posY < canvas.height / 2){
+    doodler.position.posY = canvas.height / 2;
+  }
+
   window.requestAnimationFrame(draw);
 }
+
 draw();
 
 /*  Collision detection  */
@@ -142,21 +207,32 @@ function detectCollision(doodler: Doodler, platform: Platform): boolean {
 window.addEventListener("keydown", (e) => {
   switch (e.key) {
     case "ArrowUp":
-      doodler.moveDoodler(DIRECTION.UP);
+      // if (doodler.gameStart) {
+      //   doodler.moveDoodler(DIRECTION.UP);
+      // }
       break;
     case "ArrowDown":
       doodler.moveDoodler(DIRECTION.DOWN);
       break;
     case "ArrowRight":
-      doodler.moveDoodler(DIRECTION.RIGHT);
+      if (doodler.gameStart) {
+        doodler.moveDoodler(DIRECTION.RIGHT);
+      }
       break;
     case "ArrowLeft":
-      doodler.moveDoodler(DIRECTION.LEFT);
+      if (doodler.gameStart) {
+        doodler.moveDoodler(DIRECTION.LEFT);
+      }
       break;
   }
 
   if (e.key.toLowerCase() === "r" && gameOver) {
     doodler.reset();
     draw();
+  }
+
+  if (e.code === "Space") {
+    doodler.velocity.y = INITIAL_VELOCITY_Y;
+    doodler.gameStart = true;
   }
 });

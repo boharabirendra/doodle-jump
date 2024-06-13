@@ -22,6 +22,7 @@ interface IDoodler {
   velocity: Velocity;
   score: number;
   ctx: CanvasRenderingContext2D;
+  gameStart : boolean;
 
   insertDoodler: (doodlerImg?: string) => void;
   moveDoodler: (direction: DIRECTION) => void;
@@ -38,14 +39,15 @@ export class Doodler implements IDoodler {
   ctx: CanvasRenderingContext2D;
   currentDirection: DIRECTION;
   score: number;
-
+  gameStart: boolean;
   constructor(
     width: number,
     height: number,
     position: IPoint,
     image: Image,
     velocity: Velocity,
-    ctx: CanvasRenderingContext2D
+    ctx: CanvasRenderingContext2D,
+    gameStart: boolean
   ) {
     this.width = width;
     this.height = height;
@@ -54,8 +56,11 @@ export class Doodler implements IDoodler {
     this.velocity = velocity;
     this.ctx = ctx;
     this.score = 0;
+    this.gameStart = gameStart;
     this.currentDirection = DIRECTION.RIGHT;
+
   }
+
 
   insertDoodler = (doodlerImg?: string) => {
     const img = new Image();
@@ -74,7 +79,9 @@ export class Doodler implements IDoodler {
     }
 
     /* vertical velocity */
-    this.velocity.y += GRAVITY;
+    if(this.gameStart){
+      this.velocity.y += GRAVITY;
+    }
     this.position.posY += this.velocity.y;
 
     if (this.position.posY > this.ctx.canvas.height) {
@@ -95,16 +102,16 @@ export class Doodler implements IDoodler {
     this.currentDirection = direction;
     switch (direction) {
       case DIRECTION.UP:
-        this.velocity.y = INITIAL_VELOCITY_Y;
+        // this.velocity.y = INITIAL_VELOCITY_Y;
         break;
       case DIRECTION.DOWN:
         break;
       case DIRECTION.RIGHT:
-        this.velocity.x = 4;
+        this.velocity.x = 3;
         this.insertDoodler(this.image.doodlerRight);
         break;
       case DIRECTION.LEFT:
-        this.velocity.x = -4;
+        this.velocity.x = -3;
         this.insertDoodler(this.image.doodlerLeft);
         break;
     }
@@ -117,7 +124,7 @@ export class Doodler implements IDoodler {
       if (this.score < maxScore) {
         this.score = maxScore;
       }
-    } else if (this.velocity.y >= 0) {
+    } else if (this.velocity.y > 0) {
       maxScore -= points;
     }
   };
@@ -130,6 +137,7 @@ export class Doodler implements IDoodler {
     this.height = DIMENSION.DOODLER_HEIGHT;
     this.velocity.x = 0;
     this.velocity.y = INITIAL_VELOCITY_Y;
+    this.gameStart = true;
     this.score = 0;
     maxScore = 0;
     gameOver = false;

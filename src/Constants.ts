@@ -10,9 +10,11 @@ export const DIMENSION = {
 const DOODLER_IMAGE_FACE_RIGHT = "/doodler-right.png";
 const DOODLER_IMAGE_FACE_LEFT = "/doodler-left.png";
 export const PLATFORM_IMAGE = "/platform.png";
+export const GAME_BACKGROUND = "/doodlejumpbg.png";
 export const GRAVITY = 0.4;
-export const INITIAL_VELOCITY_Y = -8;
+export const INITIAL_VELOCITY_Y = -9;
 export const NUMBER_OF_PLATFORM = 6;
+
 export const DOODLER_IMAGE = {
     DOODLER_IMAGE_FACE_LEFT,
     DOODLER_IMAGE_FACE_RIGHT

@@ -1,7 +1,14 @@
 body{
   text-align: center;
+  background-color: #020817;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  font-weight: 600;
+  font-family: "Gloria Hallelujah";
 }
 
 #canvas{
+  margin-top: 25px;
   background-image: url("/doodlejumpbg.png");
 }
