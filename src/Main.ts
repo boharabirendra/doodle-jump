@@ -284,8 +284,11 @@ canvas.addEventListener("click", function (event) {
 });
 
 /* Mobile device finger movement detection */
-let startX = 0;
-let startY = 0;
+let startX: number = 0;
+let startY: number = 0;
+
+const SCREEN_WIDTH = window.innerWidth;
+const SCREEN_CENTER = SCREEN_WIDTH / 2;
 
 canvas.addEventListener("touchstart", handleTouchStart);
 canvas.addEventListener("touchmove", handleTouchMove);
@@ -299,17 +302,9 @@ function handleTouchStart(event: TouchEvent) {
 function handleTouchMove(event: TouchEvent) {
   const touch = event.touches[0];
   const currentX = touch.clientX;
-  const currentY = touch.clientY;
-
-  const deltaX = currentX - startX;
-  const deltaY = currentY - startY;
-
-  // Determine direction
-  if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    if (deltaX > 0) {
-      doodler.moveDoodler(DIRECTION.RIGHT);
-    } else {
-      doodler.moveDoodler(DIRECTION.LEFT);
-    }
+  if (currentX < SCREEN_CENTER) {
+    doodler.moveDoodler(DIRECTION.LEFT);
+  } else {
+    doodler.moveDoodler(DIRECTION.RIGHT);
   }
 }
