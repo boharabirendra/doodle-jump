@@ -187,7 +187,6 @@ function startGame() {
     return;
   }
 
-
   if (doodler.position.posY < MAX_JUMP) {
     doodler.position.posY = MAX_JUMP;
   }
@@ -251,7 +250,7 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-/* Mouse event listener */
+/* Mouse move event listener */
 canvas.addEventListener("mousemove", function (event) {
   const mouseX = event.offsetX;
   const mouseY = event.offsetY;
@@ -268,6 +267,7 @@ canvas.addEventListener("mousemove", function (event) {
   }
 });
 
+/* Mouse click listener */
 canvas.addEventListener("click", function (event) {
   const mouseX = event.offsetX;
   const mouseY = event.offsetY;
@@ -280,5 +280,36 @@ canvas.addEventListener("click", function (event) {
   ) {
     doodler.gameStart = true;
     startGame();
-  } 
+  }
 });
+
+/* Mobile device finger movement detection */
+let startX = 0;
+let startY = 0;
+
+canvas.addEventListener("touchstart", handleTouchStart);
+canvas.addEventListener("touchmove", handleTouchMove);
+
+function handleTouchStart(event: TouchEvent) {
+  const touch = event.touches[0];
+  startX = touch.clientX;
+  startY = touch.clientY;
+}
+
+function handleTouchMove(event: TouchEvent) {
+  const touch = event.touches[0];
+  const currentX = touch.clientX;
+  const currentY = touch.clientY;
+
+  const deltaX = currentX - startX;
+  const deltaY = currentY - startY;
+
+  // Determine direction
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    if (deltaX > 0) {
+      doodler.moveDoodler(DIRECTION.RIGHT);
+    } else {
+      doodler.moveDoodler(DIRECTION.LEFT);
+    }
+  }
+}
