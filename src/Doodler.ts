@@ -1,4 +1,4 @@
-import { DIMENSION, GRAVITY, INITIAL_VELOCITY_Y } from "./Constants";
+import { DIMENSION, DOODLER_MOVEMENT, GRAVITY, INITIAL_VELOCITY_Y } from "./Constants";
 import { DIRECTION, IPoint } from "./Utils";
 
 export let gameOver = false;
@@ -71,7 +71,7 @@ export class Doodler implements IDoodler {
         : this.image.doodlerRight);
 
     /* horizontal velocity */
-    this.position.posX += this.velocity.x;
+    // this.position.posX += this.velocity.x;
     if (this.position.posX > this.ctx.canvas.width) {
       this.position.posX = 0;
     } else if (this.position.posX + this.width < 0) {
@@ -102,23 +102,24 @@ export class Doodler implements IDoodler {
     this.currentDirection = direction;
     switch (direction) {
       case DIRECTION.UP:
-        // this.velocity.y = INITIAL_VELOCITY_Y;
         break;
       case DIRECTION.DOWN:
         break;
       case DIRECTION.RIGHT:
-        this.velocity.x = 3;
+        // this.velocity.x = 2;
+        this.position.posX += DOODLER_MOVEMENT;
         this.insertDoodler(this.image.doodlerRight);
         break;
       case DIRECTION.LEFT:
-        this.velocity.x = -3;
+        // this.velocity.x = -2;
+        this.position.posX += -DOODLER_MOVEMENT;
         this.insertDoodler(this.image.doodlerLeft);
         break;
     }
   };
 
   updateScore = () => {
-    const points = Math.floor(50 * Math.random());
+    const points = Math.floor(10 * Math.random());
     if (this.velocity.y < 0) {
       maxScore += points;
       if (this.score < maxScore) {

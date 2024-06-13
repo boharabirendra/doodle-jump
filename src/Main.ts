@@ -2,6 +2,7 @@ import {
   DIMENSION,
   DOODLER_IMAGE,
   INITIAL_VELOCITY_Y,
+  MAX_JUMP,
   NUMBER_OF_PLATFORM,
   PLATFORM_IMAGE,
 } from "./Constants";
@@ -13,29 +14,11 @@ let highestScore: number = 0;
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
+const jumpSound = new Audio('/jumpCollide.mp3');
+const gameOverSound = new Audio('/gameOver.mp3');
 
 canvas.width = DIMENSION.CANVAS_WIDTH;
 canvas.height = DIMENSION.CANVAS_HEIGHT;
-
-/*    Doodler section  */
-const doodler = new Doodler(
-  DIMENSION.DOODLER_WIDTH,
-  DIMENSION.DOODLER_HEIGHT,
-  {
-    posX: canvas.width / 2 - DIMENSION.DOODLER_WIDTH / 2,
-    posY: (canvas.height * 7) / 8 - DIMENSION.DOODLER_HEIGHT,
-  },
-  {
-    doodlerLeft: DOODLER_IMAGE.DOODLER_IMAGE_FACE_LEFT,
-    doodlerRight: DOODLER_IMAGE.DOODLER_IMAGE_FACE_RIGHT,
-  },
-  {
-    x: 0,
-    y: 0,
-  },
-  ctx,
-  false
-);
 
 /* score element */
 const scoreEl = document.createElement("p");
@@ -69,6 +52,26 @@ highestScoreEl.style.left = "20%";
 highestScoreEl.innerHTML = `Highest Score: ${highestScore}`;
 document.body.appendChild(highestScoreEl);
 
+/*    Doodler section  */
+const doodler = new Doodler(
+  DIMENSION.DOODLER_WIDTH,
+  DIMENSION.DOODLER_HEIGHT,
+  {
+    posX: canvas.width / 2 - DIMENSION.DOODLER_WIDTH / 2,
+    posY: (canvas.height * 7) / 8 - DIMENSION.DOODLER_HEIGHT,
+  },
+  {
+    doodlerLeft: DOODLER_IMAGE.DOODLER_IMAGE_FACE_LEFT,
+    doodlerRight: DOODLER_IMAGE.DOODLER_IMAGE_FACE_RIGHT,
+  },
+  {
+    x: 0,
+    y: 0,
+  },
+  ctx,
+  false
+);
+
 /* Platform section */
 const platformArray: Platform[] = [];
 function placePlatform() {
@@ -85,7 +88,7 @@ function placePlatform() {
   platformArray.push(platform);
 
   for (let i = 0; i < NUMBER_OF_PLATFORM; i++) {
-    const randomX = Math.floor((Math.random() * canvas.width * 3) / 4);
+    let randomX = Math.floor((Math.random() * canvas.width * 3) / 4);
     const platform1 = new Platform(
       DIMENSION.PLATFORM_HEIGHT,
       DIMENSION.PLATFORM_WIDTH,
@@ -117,21 +120,23 @@ function newPlatform() {
   platformArray.push(platform1);
 }
 
-/*   */
-function draw() {
-
+/* Game start  */
+function startGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   doodler.insertDoodler();
 
   /* adding new platform */
   for (let i = 0; i < platformArray.length; i++) {
     const platform = platformArray[i];
-    if (doodler.velocity.y < 0 && doodler.velocity.y < (canvas.width * 3) / 4) {
-      platform.position.posY -= INITIAL_VELOCITY_Y;
+    if (
+      doodler.velocity.y < 0 &&
+      doodler.position.posY < (canvas.width * 3) / 4
+    ) {
+      platform.position.posY -= doodler.velocity.y;
     }
     if (detectCollision(doodler, platform) && doodler.velocity.y > 0) {
       doodler.velocity.y = INITIAL_VELOCITY_Y;
+      playSound(jumpSound);
     }
     platform.createPlatform();
   }
@@ -141,13 +146,12 @@ function draw() {
     platformArray[0].position.posY >= canvas.height
   ) {
     platformArray.shift();
+    doodler.score += 10;
     newPlatform();
   }
 
-
-
   /* Updating score and highest score*/
-  doodler.updateScore();
+  // doodler.updateScore();
   scoreEl.innerHTML = `Score: ${doodler.score}`;
   if (doodler.score > highestScore) {
     highestScore = doodler.score;
@@ -157,6 +161,7 @@ function draw() {
 
   /*Game over information */
   if (gameOver) {
+    playSound(gameOverSound);
     ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     const boxWidth = 300;
@@ -184,14 +189,20 @@ function draw() {
     ctx.fillText("Press 'space' to start game", 15, ctx.canvas.height - 10);
   }
 
-  if(doodler.position.posY < canvas.height / 2){
-    doodler.position.posY = canvas.height / 2;
+  if (doodler.position.posY < MAX_JUMP) {
+    doodler.position.posY = MAX_JUMP;
   }
 
-  window.requestAnimationFrame(draw);
+  window.requestAnimationFrame(startGame);
 }
 
-draw();
+startGame();
+
+/* Audio player   */
+function playSound(sound: HTMLAudioElement) {
+  sound.currentTime = 0;
+  sound.play();
+}
 
 /*  Collision detection  */
 function detectCollision(doodler: Doodler, platform: Platform): boolean {
@@ -207,9 +218,6 @@ function detectCollision(doodler: Doodler, platform: Platform): boolean {
 window.addEventListener("keydown", (e) => {
   switch (e.key) {
     case "ArrowUp":
-      // if (doodler.gameStart) {
-      //   doodler.moveDoodler(DIRECTION.UP);
-      // }
       break;
     case "ArrowDown":
       doodler.moveDoodler(DIRECTION.DOWN);
@@ -228,7 +236,7 @@ window.addEventListener("keydown", (e) => {
 
   if (e.key.toLowerCase() === "r" && gameOver) {
     doodler.reset();
-    draw();
+    startGame();
   }
 
   if (e.code === "Space") {
