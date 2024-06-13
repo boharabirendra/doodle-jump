@@ -2,7 +2,6 @@ import { DIMENSION, DOODLER_MOVEMENT, GRAVITY, INITIAL_VELOCITY_Y } from "./Cons
 import { DIRECTION, IPoint } from "./Utils";
 
 export let gameOver = false;
-let maxScore = 0;
 
 type Velocity = {
   x: number;
@@ -26,7 +25,6 @@ interface IDoodler {
 
   insertDoodler: (doodlerImg?: string) => void;
   moveDoodler: (direction: DIRECTION) => void;
-  updateScore: () => void;
   reset : () => void;
 }
 
@@ -118,17 +116,6 @@ export class Doodler implements IDoodler {
     }
   };
 
-  updateScore = () => {
-    const points = Math.floor(10 * Math.random());
-    if (this.velocity.y < 0) {
-      maxScore += points;
-      if (this.score < maxScore) {
-        this.score = maxScore;
-      }
-    } else if (this.velocity.y > 0) {
-      maxScore -= points;
-    }
-  };
 
   reset =  () => {
     this.currentDirection = DIRECTION.RIGHT;
@@ -140,7 +127,6 @@ export class Doodler implements IDoodler {
     this.velocity.y = INITIAL_VELOCITY_Y;
     this.gameStart = true;
     this.score = 0;
-    maxScore = 0;
     gameOver = false;
   };
 }

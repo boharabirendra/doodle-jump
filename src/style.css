@@ -12,3 +12,9 @@ body{
   margin-top: 25px;
   background-image: url("/doodlejumpbg.png");
 }
+
+@media (max-width: 968px){
+  #canvas{
+    margin-top: 150px;
+  }
+}
