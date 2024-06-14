@@ -21,7 +21,7 @@ export const DOODLER_MOVEMENT = 75;
 export const MAX_JUMP = 100;
 export const PLAY_BUTTON_POSITION_X = 44;
 export const PLAY_BUTTON_POSITION_Y = 140;
-export const CANVAS_MID_X = 941;
+export const CANVAS_MID_X = window.innerWidth/ 2;
 
 
 export const DOODLER_IMAGE = {

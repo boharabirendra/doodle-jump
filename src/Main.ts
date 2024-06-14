@@ -243,7 +243,7 @@ canvas.addEventListener("mousemove", function (event) {
 });
 
 /* Mouse click listener */
-canvas.addEventListener("click", function (event) {
+canvas.addEventListener("click", function initialClickHandler(event) {
   const mouseX = event.offsetX;
   const mouseY = event.offsetY;
 
@@ -255,20 +255,18 @@ canvas.addEventListener("click", function (event) {
   ) {
     doodler.gameStart = true;
     startGame();
-  }
-
-  /* Mobile device finger touch detection */
-  if (doodler.gameStart) {
-    canvas.addEventListener("click", (event: MouseEvent) => {
-      const clickedX = event.clientX;
-      if (clickedX < CANVAS_MID_X) {
-        doodler.moveDoodler(DIRECTION.LEFT);
-      } else if (clickedX > CANVAS_MID_X) {
-        doodler.moveDoodler(DIRECTION.RIGHT);
-      }
-    });
+    canvas.removeEventListener("click", initialClickHandler);
+    canvas.addEventListener("click", gameControllerClickHandler);
   }
 });
 
-
-
+/* Mobile device finger touch detection */
+function gameControllerClickHandler(event: MouseEvent) {
+  if (!doodler.gameStart) return;
+  const clickedX = event.clientX;
+  if (clickedX < CANVAS_MID_X) {
+    doodler.moveDoodler(DIRECTION.LEFT);
+  } else if (clickedX > CANVAS_MID_X) {
+    doodler.moveDoodler(DIRECTION.RIGHT);
+  }
+}
