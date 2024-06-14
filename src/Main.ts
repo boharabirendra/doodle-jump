@@ -1,4 +1,5 @@
 import {
+  CANVAS_MID_X,
   DIMENSION,
   DOODLER_IMAGE,
   INITIAL_VELOCITY_Y,
@@ -10,15 +11,15 @@ import {
   START_IMAGE,
 } from "./Constants";
 import { Doodler, gameOver } from "./Doodler";
+import { endGame } from "./GameOver";
 import { Platform } from "./Platform";
-import { DIRECTION } from "./Utils";
+import { DIRECTION, playSound } from "./Utils";
 
 let highestScore: number = 0;
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const jumpSound = new Audio("/jumpCollide.mp3");
-const gameOverSound = new Audio("/gameOver.mp3");
 
 canvas.width = DIMENSION.CANVAS_WIDTH;
 canvas.height = DIMENSION.CANVAS_HEIGHT;
@@ -155,7 +156,6 @@ function startGame() {
   }
 
   /* Updating score and highest score*/
-  // doodler.updateScore();
   scoreEl.innerHTML = `Score: ${doodler.score}`;
   if (doodler.score > highestScore) {
     highestScore = doodler.score;
@@ -163,27 +163,8 @@ function startGame() {
     highestScoreEl.innerHTML = `Highest Score: ${highestScore}`;
   }
 
-  /*Game over information */
-  if (gameOver) {
-    playSound(gameOverSound);
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    const boxWidth = 300;
-    const boxHeight = 140;
-    const boxX = (ctx.canvas.width - boxWidth) / 2;
-    const boxY = (ctx.canvas.height - boxHeight) / 2;
-
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
-
-    ctx.font = '20px "Gloria Hallelujah", sans-serif';
-    ctx.fillStyle = "red";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.fillText("Game Over", ctx.canvas.width / 2, boxY + 30);
-    ctx.fillText(`Score: ${doodler.score}`, ctx.canvas.width / 2, boxY + 70);
-    ctx.fillText("Press 'R' to Restart", ctx.canvas.width / 2, boxY + 110);
+  /*Game over section */
+  if (endGame(gameOver, ctx, doodler)) {
     return;
   }
 
@@ -207,12 +188,6 @@ function startScreen() {
   }
 }
 startScreen();
-
-/* Audio player   */
-function playSound(sound: HTMLAudioElement) {
-  sound.currentTime = 0;
-  sound.play();
-}
 
 /*  Collision detection  */
 function detectCollision(doodler: Doodler, platform: Platform): boolean {
@@ -281,30 +256,19 @@ canvas.addEventListener("click", function (event) {
     doodler.gameStart = true;
     startGame();
   }
+
+  /* Mobile device finger touch detection */
+  if (doodler.gameStart) {
+    canvas.addEventListener("click", (event: MouseEvent) => {
+      const clickedX = event.clientX;
+      if (clickedX < CANVAS_MID_X) {
+        doodler.moveDoodler(DIRECTION.LEFT);
+      } else if (clickedX > CANVAS_MID_X) {
+        doodler.moveDoodler(DIRECTION.RIGHT);
+      }
+    });
+  }
 });
 
-/* Mobile device finger movement detection */
-let startX: number = 0;
-let startY: number = 0;
 
-const SCREEN_WIDTH = window.innerWidth;
-const SCREEN_CENTER = SCREEN_WIDTH / 2;
 
-canvas.addEventListener("touchstart", handleTouchStart);
-canvas.addEventListener("touchmove", handleTouchMove);
-
-function handleTouchStart(event: TouchEvent) {
-  const touch = event.touches[0];
-  startX = touch.clientX;
-  startY = touch.clientY;
-}
-
-function handleTouchMove(event: TouchEvent) {
-  const touch = event.touches[0];
-  const currentX = touch.clientX;
-  if (currentX < SCREEN_CENTER) {
-    doodler.moveDoodler(DIRECTION.LEFT);
-  } else {
-    doodler.moveDoodler(DIRECTION.RIGHT);
-  }
-}
